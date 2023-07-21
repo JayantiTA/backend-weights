@@ -42,27 +42,24 @@ func (r *weightRepo) Get(date *time.Time) (entity.Weight, error) {
 	return weight, nil
 }
 
-func (r *weightRepo) CreateOrUpdate(weight entity.WeightDto) error {
+func (r *weightRepo) CreateOrUpdate(weightRequest entity.WeightDto) error {
 	weightDao := entity.Weight{
-		Date: weight.Date,
-		Max:  weight.Max,
-		Min:  weight.Min,
+		Date: weightRequest.Date,
+		Max:  weightRequest.Max,
+		Min:  weightRequest.Min,
 	}
-	weightResult := r.db.Where(entity.Weight{Date: weight.Date}).FirstOrCreate(&weightDao)
-	if weightResult.Error != nil {
-		return weightResult.Error
+	weight := r.db.Where(entity.Weight{Date: weightRequest.Date}).FirstOrCreate(&weightDao)
+	if weight.Error != nil {
+		return weight.Error
 	}
 
-	if weightResult.RowsAffected == 0 {
-		return r.db.Save(&weight).Error
+	if weight.RowsAffected == 0 {
+		return r.db.Model(entity.Weight{}).Where("date = ?", weightRequest.Date).Updates(entity.Weight{Max: weightRequest.Max, Min: weightRequest.Min}).Error
 	}
 
 	return nil
 }
 
 func (r *weightRepo) Delete(date *time.Time) error {
-	if err := r.db.Delete(&entity.Weight{Date: date}).Error; err != nil {
-		return err
-	}
-	return nil
+	return r.db.Where("date = ?", date).Delete(&entity.Weight{}).Error
 }

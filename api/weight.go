@@ -29,8 +29,8 @@ func (api *WeightAPI) GetAll(c *gin.Context) {
 }
 
 func (api *WeightAPI) Get(c *gin.Context) {
-	dateUnix := c.Param("date")
-	date, err := utils.UnixToTime(dateUnix)
+	dateString := c.Param("date")
+	date, err := utils.StringToDate(dateString)
 	if err != nil {
 		c.JSON(500, gin.H{
 			"message": "error parsing date",
@@ -48,7 +48,7 @@ func (api *WeightAPI) Get(c *gin.Context) {
 }
 
 func (api *WeightAPI) CreateOrUpdate(c *gin.Context) {
-	var input entity.WeightDto
+	var input entity.CreateUpdateWeightRequest
 	err := c.ShouldBindJSON(&input)
 	if err != nil {
 		c.JSON(500, gin.H{
@@ -56,7 +56,15 @@ func (api *WeightAPI) CreateOrUpdate(c *gin.Context) {
 		})
 		return
 	}
-	err = api.weightUsecase.CreateOrUpdate(input.Date, input.Max, input.Min)
+	date, err := utils.StringToDate(input.Date)
+	if err != nil {
+		c.JSON(500, gin.H{
+			"message": "error parsing date",
+		})
+		return
+	}
+
+	err = api.weightUsecase.CreateOrUpdate(&date, input.Max, input.Min)
 	if err != nil {
 		c.JSON(500, gin.H{
 			"message": "error creating or updating weight",
@@ -69,8 +77,15 @@ func (api *WeightAPI) CreateOrUpdate(c *gin.Context) {
 }
 
 func (api *WeightAPI) Delete(c *gin.Context) {
-	dateUnix := c.Param("date")
-	date, err := utils.UnixToTime(dateUnix)
+	var input entity.DeleteWeightRequest
+	err := c.ShouldBindJSON(&input)
+	if err != nil {
+		c.JSON(500, gin.H{
+			"message": "error binding json",
+		})
+		return
+	}
+	date, err := utils.StringToDate(input.Date)
 	if err != nil {
 		c.JSON(500, gin.H{
 			"message": "error parsing date",

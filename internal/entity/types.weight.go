@@ -24,3 +24,11 @@ type CreateUpdateWeightRequest struct {
 type DeleteWeightRequest struct {
 	Date string `json:"date" validate:"required"`
 }
+
+type GetWeightsResponse struct {
+	ID   int        `json:"id"`
+	Date *time.Time `json:"date"`
+	Max  int        `json:"max"`
+	Min  int        `json:"min"`
+	Diff int        `json:"diff"`
+}
